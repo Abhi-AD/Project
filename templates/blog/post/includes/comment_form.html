@@ -1,0 +1,10 @@
+<div class="container">
+     <h2 class="mt-5 mb-4">Leave a Comment</h2>
+     <form action="{% url  'blog:post_comment' post.id %}" method="post">
+          <div class="mb-3">
+               {{form.as_p}}
+               {% csrf_token %}
+          </div>
+          <button type="submit" class="btn btn-primary">Submit</button>
+     </form>
+</div>

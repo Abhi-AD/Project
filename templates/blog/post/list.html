@@ -1,22 +1,19 @@
 {% extends "blog/base.html" %}
 {% block title %}My Blog{% endblock %}
 {% block content %}
-<div class=" row">
+<div class="container text-center">
      {% for post in posts %}
-     <div class=" col-sm-4 card card-body">
+     <div class="card card-body">
           <a class="card-title text-primary" href="{{ post.get_absolute_url }}">
                {{ post.title }}
           </a>
           {{ post.body|truncatewords:10|linebreaks }}
-
           <p class="card-text">
                Published {{ post.publish }} by {{ post.author }}
           </p>
      </div>
      {% endfor %}
-</div>
-
-
+</div>  
 
 
 

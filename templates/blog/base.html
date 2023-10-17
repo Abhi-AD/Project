@@ -1,3 +1,6 @@
+{% load blog_tags %}
+{% load static %}
+
 <!doctype html>
 <html lang="en">
 
@@ -11,12 +14,12 @@
 
 <body>
      <div class="row">
-          <div class="col-sm-10 p-4">
+          <div class="col-sm-9 p-4">
                <h1 class="">My Blog</h1>
                {% block content %}
                {% endblock %}
           </div>
-          <div class="col-sm-2 btn btn-secondary">
+          <div class="col-sm-3 btn btn-secondary">
                <div class="card">
                     <div class="card-body text-center">
                          <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava2-bg.webp"
@@ -24,7 +27,19 @@
                          <h4 class="mb-2">Abhishek Dangi</h4>
                          <p class="text-muted mb-4">@Django</p>
                          <a href="#" class="btn btn-primary">Follow</a>
-                         <p>This is a blog.</p>
+                         <p>This is a blog.
+                              I've written {% total_posts %} posts so far.
+                         </p>
+                         <h3>Latest posts</h3>
+                         {% show_latest_posts 3 %}
+                         <h3>Most commented posts</h3>
+                         {% get_most_commented_posts as most_commented_posts %}
+                         <ul>
+                         {% for post in most_commented_posts %}
+                         <li>
+                         <a href="{{ post.get_absolute_url }}">{{ post.title }}</a>
+                         </li>
+                         {% endfor %}
                     </div>
                </div>
           </div>

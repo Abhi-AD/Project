@@ -5,12 +5,13 @@ from django.views.generic import ListView
 from django.views.decorators.http import require_POST
 from django.core.mail import send_mail
 from django.db.models import Count
-
+from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 
 # this app import
 from blog.models import Post, Comment
+
 # from django.http import Http404
-from blog.forms import EmailPostForm, CommentForm
+from blog.forms import EmailPostForm, CommentForm, SearchForm
 
 # libary third party
 from taggit.models import Tag
@@ -38,7 +39,7 @@ def post_list(request, tag_slug=None):
         post_list = post_list.filter(tags__in=[tag])
     # Pagination with 3 posts per page
     paginator = Paginator(post_list, 1)
-    page_number = request.GET.get('page', 1)
+    page_number = request.GET.get("page", 1)
     try:
         posts = paginator.page(page_number)
     except PageNotAnInteger:
@@ -47,7 +48,8 @@ def post_list(request, tag_slug=None):
     except EmptyPage:
         # If page_number is out of range deliver last page of results
         posts = paginator.page(paginator.num_pages)
-    return render(request,   'blog/post/list.html',    {'posts': posts,    'tag': tag})
+    return render(request, "blog/post/list.html", {"posts": posts, "tag": tag})
+
 
 # def post_detail(request, id):
 #      try:
@@ -69,12 +71,21 @@ def post_detail(request, year, month, day, post):
     comments = post.comments.filter(active=True)
     # Form for users to comment
     form = CommentForm()
-    post_tags_ids = post.tags.values_list('id', flat=True)
-    similar_posts = Post.published.filter(tags__in=post_tags_ids)\
-    .exclude(id=post.id)
-    similar_posts = similar_posts.annotate(same_tags=Count('tags'))\
-    .order_by('-same_tags','-publish')[:4]
-    return render(request, "blog/post/detail.html", {"post": post,'comments': comments, 'form': form, 'similar_posts': similar_posts})
+    post_tags_ids = post.tags.values_list("id", flat=True)
+    similar_posts = Post.published.filter(tags__in=post_tags_ids).exclude(id=post.id)
+    similar_posts = similar_posts.annotate(same_tags=Count("tags")).order_by(
+        "-same_tags", "-publish"
+    )[:4]
+    return render(
+        request,
+        "blog/post/detail.html",
+        {
+            "post": post,
+            "comments": comments,
+            "form": form,
+            "similar_posts": similar_posts,
+        },
+    )
 
 
 def post_share(request, post_id):
@@ -106,7 +117,6 @@ def post_share(request, post_id):
             )
 
 
-
 @require_POST
 def post_comment(request, post_id):
     post = get_object_or_404(Post, id=post_id, status=Post.Status.PUBLISHED)
@@ -122,5 +132,30 @@ def post_comment(request, post_id):
         comment.save()
     return render(
         request,
-        "blog/post/comment.html",{"post": post, "form": form, "comment": comment},
+        "blog/post/comment.html",
+        {"post": post, "form": form, "comment": comment},
+    )
+
+
+def post_search(request):
+    form = SearchForm()
+    query = None
+    results = []
+    if "query" in request.GET:
+        form = SearchForm(request.GET)
+        if form.is_valid():
+            query = form.cleaned_data["query"]
+            search_vector = SearchVector("title", "body")
+            search_query = SearchQuery(query)
+            results = (
+                Post.published.annotate(
+                    search=search_vector, rank=SearchRank(search_vector, search_query)
+                )
+                .filter(search=search_query)
+                .order_by("-rank")
+            )
+    return render(
+        request,
+        "blog/post/search.html",
+        {"form": form, "query": query, "results": results},
     )

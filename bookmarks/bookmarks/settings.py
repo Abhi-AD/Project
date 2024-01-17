@@ -25,7 +25,7 @@ SECRET_KEY = "django-insecure-#^k2v7u9ry!pbz0wwrx$5$i8s1ag(tt)*^@^+zav=4yt=p-m(x
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["mysite.com", "localhost", "127.0.0.1"]
 
 
 # Application definition
@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # qpp
     "account.apps.AccountConfig",
+    "social_django",
+    "django_extensions",
 ]
 
 MIDDLEWARE = [
@@ -147,4 +149,5 @@ MEDIA_ROOT = BASE_DIR / "media"
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
     "account.authentication.EmailAuthBackend",
+    "social_core.backends.facebook.FacebookOAuth2",
 ]

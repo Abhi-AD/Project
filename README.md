@@ -1,2 +1,2 @@
-# Project django books..
+# Project django books...
 
